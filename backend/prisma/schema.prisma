@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  points    Int       @default(0)
+  createdAt DateTime  @default(now())
+  bookings  Booking[]
+}
+
+model Hotel {
+  id          Int      @id @default(autoincrement())
+  name        String
+  location    String
+  price       Float
+  rating      Float
+  reviews     Int
+  image       String
+  description String
+  featured    Boolean  @default(false)
+  amenities   String   // Stored as JSON string a simple array of strings e.g. '["WiFi", "Pool"]'
+  bookings    Booking[]
+  rooms       Room[]
+}
+
+model Room {
+  id          Int      @id @default(autoincrement())
+  hotelId     Int
+  roomNumber  String
+  type        String   // STANDARD, DELUXE, SUITE, PREMIUM
+  capacity    Int      @default(2)
+  pricePerNight Float
+  floor       Int      @default(1)
+  status      String   @default("AVAILABLE") // AVAILABLE, BOOKED, MAINTENANCE
+  amenities   String   // JSON string
+  hotel       Hotel    @relation(fields: [hotelId], references: [id])
+  bookings    Booking[]
+}
+
+model Booking {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  hotelId       Int
+  roomId        Int?
+  checkIn       DateTime
+  checkOut      DateTime
+  totalAmount   Float
+  status        String   @default("CONFIRMED") // CONFIRMED, CANCELLED
+  createdAt     DateTime @default(now())
+
+  user          User     @relation(fields: [userId], references: [id])
+  hotel         Hotel    @relation(fields: [hotelId], references: [id])
+  room          Room?    @relation(fields: [roomId], references: [id])
+}
+
+model Promotion {
+  id              Int      @id @default(autoincrement())
+  code            String   @unique
+  discountPercent Float
+  isActive        Boolean  @default(true)
+}
